@@ -1,0 +1,189 @@
+Notepad++ v8.8.5 regression-fix:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freelancer Proposal Calculator</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #fdfdfd;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    color: #333;
+  }
+  h1, h2, h3 {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .task, .field {
+    margin-bottom: 15px;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    position: relative;
+  }
+  label span.tooltip {
+    font-weight: normal;
+    font-size: 12px;
+    color: #777;
+    display: block;
+    margin-top: 2px;
+  }
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 5px;
+  }
+  button:hover { background-color: #0056b3; }
+  .results {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+  }
+  .proposal-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0f9ff;
+    border-left: 5px solid #007bff;
+    border-radius: 6px;
+  }
+  .proposal-box h3 {
+    text-align: left;
+    margin-top: 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Freelancer Proposal Calculator</h1>
+<p style="text-align:center;">Estimate project cost, price range, and auto-generate a professional proposal draft.</p>
+
+<div class="field">
+  <label>Client Name:
+    <span class="tooltip">Add the name of the client if available (personal touch improves response).</span>
+  </label>
+  <input type="text" id="clientName" placeholder="e.g., Joseph">
+</div>
+
+<div class="field">
+  <label>Project Name:
+    <span class="tooltip">Describe the project briefly (e.g., Email Copywriting, Logo Design).</span>
+  </label>
+  <input type="text" id="projectName" placeholder="e.g., Email Copywriting Project">
+</div>
+
+<div class="field">
+  <label>Hourly Rate ($):
+    <span class="tooltip">Your rate per hour of work. Example: 25, 35, or 50 USD.</span>
+  </label>
+  <input type="number" id="rate" value="35">
+</div>
+
+<div class="field">
+  <label>Number of Tasks:
+    <span class="tooltip">How many separate tasks or steps are involved in the project?</span>
+  </label>
+  <input type="number" id="numTasks" value="3" min="1">
+</div>
+
+<div id="tasksContainer"></div>
+
+<button onclick="generateTaskInputs()">Update Tasks</button>
+<button onclick="calculateTotal()">Calculate Proposal</button>
+
+<div class="results">
+  <h2>Calculation Results</h2>
+  <p><strong>Total Proposal Price:</strong> $<span id="total">0</span></p>
+  <p><strong>Suggested Price Range:</strong> $<span id="priceRange">0 - 0</span></p>
+</div>
+
+<div class="proposal-box">
+  <h3>Generated Proposal Draft</h3>
+  <p id="proposalText">Your proposal will appear here after calculation.</p>
+</div>
+
+<script>
+const tasksContainer = document.getElementById('tasksContainer');
+
+function generateTaskInputs() {
+  tasksContainer.innerHTML = '';
+  const numTasks = parseInt(document.getElementById('numTasks').value);
+  for (let i = 1; i <= numTasks; i++) {
+    const div = document.createElement('div');
+    div.className = 'task';
+    div.innerHTML = `
+      <label>Task ${i} Description:</label>
+      <input type="text" id="taskDesc${i}" placeholder="Describe task ${i}">
+      <label>Task ${i} Hours:</label>
+      <input type="number" id="taskHours${i}" value="2" min="0">
+    `;
+    tasksContainer.appendChild(div);
+  }
+}
+
+function calculateTotal() {
+  const clientName = document.getElementById('clientName').value.trim() || "Client";
+  const projectName = document.getElementById('projectName').value.trim() || "Your Project";
+  const rate = parseFloat(document.getElementById('rate').value);
+  const numTasks = parseInt(document.getElementById('numTasks').value);
+
+  let total = 0;
+  let taskList = [];
+  for (let i = 1; i <= numTasks; i++) {
+    const desc = document.getElementById(`taskDesc${i}`).value || `Task ${i}`;
+    const hours = parseFloat(document.getElementById(`taskHours${i}`).value) || 0;
+    taskList.push(`${desc} (${hours} hrs)`);
+    total += rate * hours;
+  }
+
+  // Price range: 80% to 120% of calculated total
+  const minPrice = (total * 0.8).toFixed(2);
+  const maxPrice = (total * 1.2).toFixed(2);
+
+  document.getElementById('total').innerText = total.toFixed(2);
+  document.getElementById('priceRange').innerText = `${minPrice} - ${maxPrice}`;
+
+  // Auto-generate proposal
+  const proposal = `
+Hi ${clientName},
+
+I’ve reviewed the details of your ${projectName}. Based on the scope, I’ve estimated the following tasks: ${taskList.join(", ")}. With my experience in handling similar projects, I can ensure professional results within your expected timeline.
+
+My proposed total for this project is $${total.toFixed(2)}, which generally falls within the range of $${minPrice} – $${maxPrice}. I am confident in delivering high-quality work and am open to discussing any adjustments you’d like.
+
+Looking forward to collaborating on this project.
+
+Best regards,  
+[Your Name]
+  `;
+  document.getElementById('proposalText').innerText = proposal;
+}
+
+// Initialize default task inputs
+generateTaskInputs();
+</script>
+
+</body>
+</html>
